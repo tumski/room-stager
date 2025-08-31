@@ -50,7 +50,7 @@ function ResultContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto px-4 py-16">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-3xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
               Your <span className="text-indigo-600">Staged</span> Room
@@ -60,29 +60,29 @@ function ResultContent() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden md:col-span-1">
               <div className="p-6">
                 <h2 className="font-semibold text-gray-900 dark:text-white mb-3">Before</h2>
-                <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
+                <div className="relative rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={originalImageUrl || ''}
                     alt="Original room"
-                    className="w-full h-full object-cover"
+                    className="w-full h-auto max-h-[40vh] object-contain"
                   />
                 </div>
               </div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden md:col-span-2">
               <div className="p-6">
                 <h2 className="font-semibold text-gray-900 dark:text-white mb-3">After</h2>
-                <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
+                <div className="relative rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={stagedImageUrl}
                     alt="Staged room"
-                    className="w-full h-full object-cover"
+                    className="w-full h-auto max-h-[80vh] object-contain"
                   />
                 </div>
               </div>

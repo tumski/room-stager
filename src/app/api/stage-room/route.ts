@@ -82,7 +82,16 @@ export async function POST(request: NextRequest) {
 		}
 
 		let prompt =
-			"Transform this room to be beautifully staged and furnished, similar in style to the example staged rooms provided.";
+			"Transform the uploaded photo of a cozy attic bedroom (with large slanted window, warm wood beams, brick elements, built-in shelving, and a mix of orange, cream, and natural wood tones). Preserve all architectural details and layout exactly as in the source image: keep the size, perspective, positions and shapes of windows and doors, placement of structural beams, and all built-in features intact." +
+			" Restyle the room to precisely match the textures, color palette, and overall visual style of the three attached example images." +
+			" Use the same design language and atmosphere: contemporary urban style, with a warm, inviting vibe, coordinated staging, playful decor touches, and a cohesive color story." +
+			" Change the surface colors, wall/ceiling hues, flooring, furniture finishes, bedding, and decor accents so they reflect the exact style, materials, and mood of the sample images." +
+			" Adapt staging and arrangement to feel as professionally finished as the references, applying cohesive styling and visual balance." +
+			" Important:" +
+			" Do not alter the layout, scale, or structure—window, door, and beam positions must remain unchanged." +
+			" Only transform colors, textures, and decorative elements (such as throw blankets, rugs, artwork, and small objects) to match the exemplary style." +
+			" Be true to the style and ambiance of the sample images: warm light, coordinated accent pops, and a modern yet lived-in, creative atmosphere." +
+			" Style keywords for emphasis: Urban contemporary, warm color palette, natural textures, playful modern decor, casual and artistic staging, brick and wood accents.";
 
 		if (exampleImageUrls.length > 0) {
 			prompt +=
