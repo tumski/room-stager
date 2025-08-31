@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Room Stager (Next.js + fal.ai + nano-banana)
 
-## Getting Started
+A minimal proof of concept to upload a room photo and get a staged version using fal.ai with Google’s nano-banana model. Images are uploaded ephemerally to fal storage (no local disk persistence) for Vercel compatibility.
 
-First, run the development server:
+### Prerequisites
+- Node 18+ (or Vercel runtime)
+- pnpm
+- fal.ai API key
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### Environment Variables
+Create a `.env.local` for local dev (and add the same on Vercel):
+
+```
+FAL_KEY=your_fal_api_key
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+No other secrets are required. Example reference images are read from `public/example-rooms/`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Local Development
+```bash
+pnpm install
+pnpm dev
+```
+Open `http://localhost:3000`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Notes:
+- On localhost, public files aren’t accessible to fal servers; the API uploads example images to fal storage automatically.
+- On Vercel, public URLs are used directly.
 
-## Learn More
+### Deploy to Vercel
+1. Push this repo to GitHub.
+2. Import on Vercel.
+3. Add `FAL_KEY` in Project Settings → Environment Variables.
+4. Deploy.
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### How it Works
+- `POST /api/stage-room` accepts a multipart image, uploads to `fal.storage`, collects example images, and calls `fal-ai/nano-banana/edit`.
+- The result page shows a before/after comparison using returned URLs.
