@@ -74,16 +74,18 @@ export async function POST(request: NextRequest) {
 									? "image/webp"
 									: "image/jpeg";
 						// Convert Node Buffer to ArrayBuffer for Blob compatibility
-						const arrayBuffer = buffer.buffer.slice(
+						// Create a typed view over the Buffer to satisfy BlobPart typing
+						const view = new Uint8Array(
+							buffer.buffer,
 							buffer.byteOffset,
-							buffer.byteOffset + buffer.byteLength,
+							buffer.byteLength,
 						);
-						const blob = new Blob([arrayBuffer], { type: mime });
+						const blob = new Blob([view], { type: mime });
 						return fal.storage.upload(blob);
 					}),
 				);
 			}
-		} catch (_) {
+		} catch {
 			exampleImageUrls = [];
 		}
 
