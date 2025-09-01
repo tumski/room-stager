@@ -20,8 +20,10 @@ export default function Home() {
     if (!selectedFile) return;
 
     setIsUploading(true);
+    // Preprocess image to stay under Vercel's body limit (~4.5MB)
+    const processed = await preprocessImage(selectedFile);
     const formData = new FormData();
-    formData.append('roomImage', selectedFile);
+    formData.append('roomImage', processed);
 
     try {
       const response = await fetch('/api/stage-room', {
@@ -46,6 +48,76 @@ export default function Home() {
       setIsUploading(false);
     }
   };
+
+  async function preprocessImage(file: File): Promise<File> {
+    // Quick exit if already small (<3.5MB)
+    if (file.size < 3_500_000) return file;
+
+    const bitmap = await createImageBitmap(file).catch(async () => {
+      // Fallback via Image element if createImageBitmap fails
+      const img = await loadImage(URL.createObjectURL(file));
+      return await imageToBitmap(img);
+    });
+
+    // Compute target dimensions (max side 2048)
+    const maxSide = 2048;
+    const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
+    const targetW = Math.max(1, Math.round(bitmap.width * scale));
+    const targetH = Math.max(1, Math.round(bitmap.height * scale));
+
+    const canvas = document.createElement('canvas');
+    canvas.width = targetW;
+    canvas.height = targetH;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return file;
+    ctx.drawImage(bitmap, 0, 0, targetW, targetH);
+
+    // Try iterative quality reduction to keep under ~4MB
+    const tryFormats: Array<{ type: string; ext: string }> = [
+      { type: 'image/webp', ext: 'webp' },
+      { type: 'image/jpeg', ext: 'jpg' },
+    ];
+    for (const fmt of tryFormats) {
+      let quality = 0.9;
+      for (let i = 0; i < 6; i++) {
+        const blob = await canvasToBlob(canvas, fmt.type, quality);
+        if (!blob) break;
+        if (blob.size < 4_000_000) {
+          const name = file.name.replace(/\.[^.]+$/, '') + `.${fmt.ext}`;
+          return new File([blob], name, { type: fmt.type });
+        }
+        quality -= 0.1;
+      }
+    }
+
+    // Fallback: return original if cannot compress adequately
+    return file;
+  }
+
+  function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality?: number): Promise<Blob | null> {
+    return new Promise((resolve) => canvas.toBlob(resolve, type, quality));
+  }
+
+  function loadImage(src: string): Promise<HTMLImageElement> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = src;
+    });
+  }
+
+  async function imageToBitmap(img: HTMLImageElement): Promise<ImageBitmap> {
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Canvas not supported');
+    ctx.drawImage(img, 0, 0);
+    const blob = await canvasToBlob(canvas, 'image/jpeg', 0.95);
+    if (!blob) throw new Error('Failed to create blob');
+    return await createImageBitmap(blob);
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
