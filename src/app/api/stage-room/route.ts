@@ -45,11 +45,14 @@ export async function POST(request: NextRequest) {
 		let exampleImageUrls: string[] = [];
 		try {
 			const exampleFiles = await fs.readdir(exampleRoomsDir);
-			const imageFiles = exampleFiles.filter(
-				(file) =>
-					/\.(jpg|jpeg|png|webp)$/i.test(file) &&
-					file.toLowerCase() !== "readme.md",
-			);
+				const imageFiles = exampleFiles.filter(
+					(file) =>
+						/\.(jpg|jpeg|png|webp)$/i.test(file) &&
+						file.toLowerCase() !== "readme.md",
+				);
+                // Pick a stable, small subset (max 3) to match prompt
+                imageFiles.sort();
+                const selected = imageFiles.slice(0, 3);
 
 			// Build URLs based on the current request origin
 			const origin = request.nextUrl.origin;
@@ -57,13 +60,13 @@ export async function POST(request: NextRequest) {
 
 			if (!isLocalhost) {
 				// On production (e.g., Vercel), public assets are publicly accessible
-				exampleImageUrls = imageFiles.map(
+				exampleImageUrls = selected.map(
 					(file) => `${origin}/example-rooms/${file}`,
 				);
 			} else {
 				// On localhost, fal servers can't fetch from your machine. Upload examples to fal storage.
 				exampleImageUrls = await Promise.all(
-					imageFiles.map(async (file) => {
+					selected.map(async (file) => {
 						const filePath = path.join(exampleRoomsDir, file);
 						const buffer = await fs.readFile(filePath);
 						const ext = path.extname(file).toLowerCase();
@@ -135,12 +138,16 @@ export async function POST(request: NextRequest) {
 		});
 	} catch (error) {
 		console.error("Error staging room:", error);
+		// Try to surface fal validation errors if present
+		const anyErr = error as any;
+		const status = typeof anyErr?.status === "number" ? anyErr.status : 500;
+		const body = anyErr?.body ?? (anyErr instanceof Error ? anyErr.message : "Unknown error");
 		return NextResponse.json(
 			{
 				error: "Failed to stage room",
-				details: error instanceof Error ? error.message : "Unknown error",
+				details: body,
 			},
-			{ status: 500 },
+			{ status },
 		);
 	}
 }
