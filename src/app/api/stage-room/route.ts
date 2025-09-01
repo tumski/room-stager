@@ -136,16 +136,25 @@ export async function POST(request: NextRequest) {
 				result.data?.description ||
 				"Room staged successfully",
 		});
-	} catch (error) {
+	} catch (error: unknown) {
 		console.error("Error staging room:", error);
-		// Try to surface fal validation errors if present
-		const anyErr = error as any;
-		const status = typeof anyErr?.status === "number" ? anyErr.status : 500;
-		const body = anyErr?.body ?? (anyErr instanceof Error ? anyErr.message : "Unknown error");
+		// Try to surface fal validation errors if present without using any
+		function hasStatus(e: unknown): e is { status: number } {
+			return typeof e === "object" && e !== null && typeof (e as { status?: unknown }).status === "number";
+		}
+		function hasBody(e: unknown): e is { body: unknown } {
+			return typeof e === "object" && e !== null && "body" in (e as object);
+		}
+		const status = hasStatus(error) ? error.status : 500;
+		const details = hasBody(error)
+			? error.body
+			: error instanceof Error
+				? error.message
+				: "Unknown error";
 		return NextResponse.json(
 			{
 				error: "Failed to stage room",
-				details: body,
+				details,
 			},
 			{ status },
 		);
