@@ -1,3 +1,4 @@
+export const runtime = "nodejs";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { fal } from "@fal-ai/client";
@@ -72,8 +73,13 @@ export async function POST(request: NextRequest) {
 								: ext === ".webp"
 									? "image/webp"
 									: "image/jpeg";
-						const uploadFile = new File([buffer], file, { type: mime });
-						return fal.storage.upload(uploadFile);
+						// Convert Node Buffer to ArrayBuffer for Blob compatibility
+						const arrayBuffer = buffer.buffer.slice(
+							buffer.byteOffset,
+							buffer.byteOffset + buffer.byteLength,
+						);
+						const blob = new Blob([arrayBuffer], { type: mime });
+						return fal.storage.upload(blob);
 					}),
 				);
 			}
